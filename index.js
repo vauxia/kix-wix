@@ -1,4 +1,4 @@
-function fixHeaders(headers, yourDomain, targetHost) {
+function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
   const newHeaders = new Headers(headers)
   
   if (headers.has('set-cookie')) {
@@ -8,8 +8,8 @@ function fixHeaders(headers, yourDomain, targetHost) {
     for (const [name, value] of headers.entries()) {
       if (name.toLowerCase() === 'set-cookie') {
         const fixedCookie = value
-          .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${yourDomain}`)
-          .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${yourDomain}`)
+          .replace(new RegExp(`Domain=${targetUser}.wixsite.com`, 'gi'), `Domain=${yourDomain}`)
+          .replace(new RegExp(`Domain=\.${targetUser}.wixsite.com`, 'gi'), `Domain=.${yourDomain}`)
           .replace(/Domain=wixsite\.com/gi, `Domain=${yourDomain}`)
           .replace(new RegExp(`Domain=${targetHost}`, 'gi'), `Domain=${yourDomain}`)
         allSetCookieHeaders.push(fixedCookie)
@@ -44,6 +44,11 @@ export default {
     const targetURL = new URL(TARGET_ORIGIN)
     const targetHost = targetURL.hostname
     const targetPath = targetURL.pathname
+    
+    // Extract targetUser from wixsite.com subdomain
+    const targetUser = targetHost.includes('wixsite.com') 
+      ? targetHost.split('.')[0] 
+      : null
     let newHeaders;
 
     // Only proxy requests to your domain
@@ -70,7 +75,7 @@ export default {
         // Handle different content types appropriately
         if (contentType.includes('application/json')) {
           // JSON - pass through unchanged to avoid parse errors
-            newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
+            newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
           
           return new Response(response.body, {
             status: response.status,
@@ -113,7 +118,7 @@ export default {
           
           body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
           
-          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
+          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
           newHeaders.set('Content-Type', contentType)
           
           return new Response(body, {
@@ -129,11 +134,11 @@ export default {
           let body = await response.text()
           
           // Only replace URL patterns, not arbitrary text
-          body = body.replace(/url\(['"]?https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `url('https://${YOUR_DOMAIN}`)
-          body = body.replace(/src=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `src="https://${YOUR_DOMAIN}`)
-          body = body.replace(/href=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `href="https://${YOUR_DOMAIN}`)
+          body = body.replace(new RegExp(`url\\(['"]?https://${targetUser}.wixsite.com${targetPath}`, 'g'), `url('https://${YOUR_DOMAIN}`)
+          body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
+          body = body.replace(new RegExp(`href=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `href="https://${YOUR_DOMAIN}`)
           
-          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
+          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
           newHeaders.set('Content-Type', contentType)
 
           return new Response(body, {
@@ -144,7 +149,7 @@ export default {
           
         } else {
           // Everything else (images, fonts, etc.) - pass through unchanged
-          const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
+          const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
           
           return new Response(response.body, {
             status: response.status,
