@@ -1,4 +1,4 @@
-function fixCookieDomains(headers, yourDomain, targetHost) {
+function fixHeaders`(headers, yourDomain, targetHost) {
   const newHeaders = new Headers(headers)
   
   if (headers.has('set-cookie')) {
@@ -24,6 +24,10 @@ function fixCookieDomains(headers, yourDomain, targetHost) {
       newHeaders.append('set-cookie', cookie)
     })
   }
+  newHeaders.set('Access-Control-Allow-Origin', '*')
+  newHeaders.delete('x-frame-options')
+  newHeaders.delete('content-security-policy')
+  newHeaders.delete('content-security-policy-report-only')
   
   return newHeaders
 }
@@ -65,11 +69,7 @@ export default {
         // Handle different content types appropriately
         if (contentType.includes('application/json')) {
           // JSON - pass through unchanged to avoid parse errors
-          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
-          newHeaders.set('Access-Control-Allow-Origin', '*')
-          newHeaders.delete('x-frame-options')
-          newHeaders.delete('content-security-policy')
-          newHeaders.delete('content-security-policy-report-only')
+          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
           
           return new Response(response.body, {
             status: response.status,
@@ -112,12 +112,8 @@ export default {
           
           body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
           
-          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
+          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
-          newHeaders.set('Access-Control-Allow-Origin', '*')
-          newHeaders.delete('x-frame-options')
-          newHeaders.delete('content-security-policy')
-          newHeaders.delete('content-security-policy-report-only')
           
           return new Response(body, {
             status: response.status,
@@ -136,11 +132,8 @@ export default {
           body = body.replace(/src=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `src="https://${YOUR_DOMAIN}`)
           body = body.replace(/href=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `href="https://${YOUR_DOMAIN}`)
           
-          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
+          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
-          newHeaders.set('Access-Control-Allow-Origin', '*')
-          newHeaders.delete('x-frame-options')
-          newHeaders.delete('content-security-policy')
 
           return new Response(body, {
             status: response.status,
@@ -150,10 +143,7 @@ export default {
           
         } else {
           // Everything else (images, fonts, etc.) - pass through unchanged
-          const newHeaders = new Headers(response.headers)
-          newHeaders.set('Access-Control-Allow-Origin', '*')
-          newHeaders.delete('x-frame-options')
-          newHeaders.delete('content-security-policy')
+          const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
           
           return new Response(response.body, {
             status: response.status,
