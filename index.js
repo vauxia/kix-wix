@@ -71,8 +71,7 @@ export default {
 
             try {
                 const response = await fetch(modifiedRequest)
-                const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
-                newHeaders.set('Access-Control-Allow-Origin', '*')
+                const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
 
                 return new Response(response.body, {
                     status: response.status,
@@ -151,21 +150,7 @@ export default {
 
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
-                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
-                    newHeaders.set('Content-Type', contentType)
-
-                    return new Response(body, {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: newHeaders
-                    })
-
-                } else if (contentType.includes('text/css') ||
-                    contentType.includes('application/javascript') ||
-                    contentType.includes('text/javascript')) {
-                    // CSS/JS - modify URLs but be careful
-                    let body = await response.text()
-                    // Add CSS to hide TPA-related elements and suppress console
+                    // Add TPA suppression and error handling to HTML only
                     body = body.replace(
                         /<\/head>/i,
                         `<style>
@@ -191,11 +176,6 @@ export default {
 </head>`
                     )
 
-                    // Only replace URL patterns, not arbitrary text
-                    body = body.replace(new RegExp(`url\\(['"]?https://${targetUser}.wixsite.com${targetPath}`, 'g'), `url('https://${YOUR_DOMAIN}`)
-                    body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
-                    body = body.replace(new RegExp(`href=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `href="https://${YOUR_DOMAIN}`)
-
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
                     body = body.replace(/\s+integrity='[^']*'/g, '')
@@ -209,9 +189,29 @@ export default {
                         headers: newHeaders
                     })
 
+                } else if (contentType.includes('text/css') ||
+                    contentType.includes('application/javascript') ||
+                    contentType.includes('text/javascript')) {
+                    // CSS/JS - modify URLs but preserve exact MIME type
+                    let body = await response.text()
+
+                    // Only replace URL patterns, not arbitrary text
+                    body = body.replace(new RegExp(`url\\(['"]?https://${targetUser}.wixsite.com${targetPath}`, 'g'), `url('https://${YOUR_DOMAIN}`)
+                    body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
+                    body = body.replace(new RegExp(`href=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `href="https://${YOUR_DOMAIN}`)
+
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders.set('Content-Type', contentType) // Preserve exact MIME type
+
+                    return new Response(body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: newHeaders
+                    })
+
                 } else {
                     // Everything else (images, fonts, etc.) - pass through unchanged
-                    const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
 
                     return new Response(response.body, {
                         status: response.status,
