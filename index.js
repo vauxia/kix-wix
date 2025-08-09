@@ -44,7 +44,8 @@ export default {
     const targetURL = new URL(TARGET_ORIGIN)
     const targetHost = targetURL.hostname
     const targetPath = targetURL.pathname
-    
+    let newHeaders;
+
     // Only proxy requests to your domain
     if (url.hostname === YOUR_DOMAIN) {
       // Construct the target URL
@@ -69,7 +70,7 @@ export default {
         // Handle different content types appropriately
         if (contentType.includes('application/json')) {
           // JSON - pass through unchanged to avoid parse errors
-          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
+            newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
           
           return new Response(response.body, {
             status: response.status,
@@ -112,7 +113,7 @@ export default {
           
           body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
           
-          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
+          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
           
           return new Response(body, {
@@ -132,7 +133,7 @@ export default {
           body = body.replace(/src=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `src="https://${YOUR_DOMAIN}`)
           body = body.replace(/href=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `href="https://${YOUR_DOMAIN}`)
           
-          const newHeaders = fixHeaders`(response.headers, YOUR_DOMAIN, targetHost)
+          newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
 
           return new Response(body, {
