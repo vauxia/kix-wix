@@ -41,32 +41,31 @@ export default {
           body = body.replace(new RegExp(targetHost + targetPath, 'g'), YOUR_DOMAIN)
           body = body.replace(new RegExp(targetPath + '/', 'g'), '/')
           
-          // Return modified HTML
+          // Create new headers object and explicitly set content-type
+          const newHeaders = new Headers(response.headers)
+          newHeaders.set('Content-Type', contentType) // Preserve original content-type
+          newHeaders.set('Access-Control-Allow-Origin', '*')
+          newHeaders.delete('x-frame-options')
+          newHeaders.delete('content-security-policy')
+          
+          // Return modified HTML with preserved content-type
           return new Response(body, {
             status: response.status,
             statusText: response.statusText,
-            headers: {
-              ...response.headers,
-              'Access-Control-Allow-Origin': '*',
-              'Content-Type': 'text/html; charset=utf-8'
-            }
+            headers: newHeaders
           })
         } else {
           // For CSS, JS, images, etc. - pass through unchanged
-          const newResponse = new Response(response.body, {
+          const newHeaders = new Headers(response.headers)
+          newHeaders.set('Access-Control-Allow-Origin', '*')
+          newHeaders.delete('x-frame-options')
+          newHeaders.delete('content-security-policy')
+          
+          return new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
-            headers: {
-              ...response.headers,
-              'Access-Control-Allow-Origin': '*'
-            }
+            headers: newHeaders
           })
-          
-          // Remove problematic headers
-          newResponse.headers.delete('x-frame-options')
-          newResponse.headers.delete('content-security-policy')
-          
-          return newResponse
         }
         
       } catch (error) {
@@ -74,4 +73,7 @@ export default {
       }
     }
     
-    // For other hostn
+    // For other hostnames, return original request
+    return fetch(request)
+  }
+}
