@@ -133,6 +133,42 @@ export default {
                     // CSS/JS - modify URLs but be careful
                     let body = await response.text()
 
+                    // Inject TPA error suppression at the very top of the page
+                    body = body.replace(
+                        /<head>/i,
+                        `<head>
+<script>
+// Comprehensive TPA error suppression
+(function() {
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  
+  console.error = function(...args) {
+    const message = args[0];
+    if (typeof message === 'string' && (
+      message.includes('TPA message') ||
+      message.includes('destroyed page') ||
+      message.includes('siteInfo')
+    )) {
+      return; // Suppress TPA errors
+    }
+    originalConsoleError.apply(console, args);
+  };
+  
+  console.warn = function(...args) {
+    const message = args[0];
+    if (typeof message === 'string' && (
+      message.includes('TPA message') ||
+      message.includes('destroyed page')
+    )) {
+      return; // Suppress TPA warnings
+    }
+    originalConsoleWarn.apply(console, args);
+  };
+})();
+</script>`
+                    )
+
                     // Only replace URL patterns, not arbitrary text
                     body = body.replace(new RegExp(`url\\(['"]?https://${targetUser}.wixsite.com${targetPath}`, 'g'), `url('https://${YOUR_DOMAIN}`)
                     body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
@@ -141,31 +177,6 @@ export default {
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
                     body = body.replace(/\s+integrity='[^']*'/g, '')
-
-                    // Fix TPA and navigation issues
-                    body = body.replace(
-                        /<script>/g,
-                        `<script>
-// Suppress TPA errors
-const originalConsoleError = console.error;
-console.error = function(...args) {
-  if (args[0] && args[0].includes && args[0].includes('TPA message')) {
-    return; // Suppress TPA errors
-  }
-  originalConsoleError.apply(console, args);
-};
-
-// Fix postMessage origin issues
-const originalPostMessage = window.postMessage;
-window.postMessage = function(message, targetOrigin, transfer) {
-  if (targetOrigin && targetOrigin.includes('${targetHost}')) {
-    targetOrigin = targetOrigin.replace('${targetHost}', '${YOUR_DOMAIN}');
-  }
-  return originalPostMessage.call(this, message, targetOrigin, transfer);
-};
-</script>
-<script>`
-                    )
 
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
                     newHeaders.set('Content-Type', contentType)
