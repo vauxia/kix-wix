@@ -48,16 +48,39 @@ export default {
           })
           
         } else if (contentType.includes('text/html')) {
-          // HTML - modify URLs
+          // HTML - modify URLs carefully to preserve JSON
           let body = await response.text()
           
-          // Replace URLs in HTML
-          body = body.replace(new RegExp(`https://${targetHost.replace(/\./g, '\\.')}${targetPath.replace(/\//g, '\\/')}`, 'g'), `https://${YOUR_DOMAIN}`)
-          body = body.replace(new RegExp(`https://${targetHost.replace(/\./g, '\\.')}`, 'g'), `https://${YOUR_DOMAIN}`)
-          body = body.replace(new RegExp(targetPath.replace(/\//g, '\\/'), 'g'), '')
-          body = body.replace(new RegExp(targetHost.replace(/\./g, '\\.'), 'g'), YOUR_DOMAIN)
-          body = body.replace(/\/welcome-cheetos\//g, '/')
-          body = body.replace(/welcome-cheetos\//g, '')
+          // Function to safely replace URLs in JSON strings
+          function replaceInJson(text, oldDomain, newDomain, oldPath) {
+            // Replace JSON-escaped URLs (with \/)
+            text = text.replace(
+              new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\\\\\/')}`, 'g'),
+              `https:\\/\\/${newDomain}`
+            )
+            text = text.replace(
+              new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}`, 'g'),
+              `https:\\/\\/${newDomain}`
+            )
+            
+            // Replace regular URLs in HTML
+            text = text.replace(
+              new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}`, 'g'),
+              `https://${newDomain}`
+            )
+            text = text.replace(
+              new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}`, 'g'),
+              `https://${newDomain}`
+            )
+            
+            // Replace relative paths
+            text = text.replace(new RegExp(oldPath.replace(/\//g, '\\/'), 'g'), '')
+            text = text.replace(new RegExp(oldDomain.replace(/\./g, '\\.'), 'g'), newDomain)
+            
+            return text
+          }
+          
+          body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
           
           const newHeaders = new Headers(response.headers)
           newHeaders.set('Content-Type', contentType)
@@ -75,7 +98,7 @@ export default {
         } else if (contentType.includes('text/css') || 
                    contentType.includes('application/javascript') ||
                    contentType.includes('text/javascript')) {
-          // CSS/JS - modify URLs but be more careful
+          // CSS/JS - modify URLs but be careful
           let body = await response.text()
           
           // Only replace URL patterns, not arbitrary text
