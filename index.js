@@ -32,34 +32,62 @@ export default {
         const response = await fetch(modifiedRequest)
         const contentType = response.headers.get('content-type') || ''
         
-        // Only modify HTML content, pass through everything else as-is
-        if (contentType.includes('text/html')) {
+        // Modify text-based content (HTML, CSS, JS)
+        if (contentType.includes('text/html') || 
+            contentType.includes('text/css') || 
+            contentType.includes('application/javascript') ||
+            contentType.includes('text/javascript')) {
+          
           let body = await response.text()
           
-          // Replace target domain references with your domain in the HTML
-          body = body.replace(new RegExp(TARGET_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), `https://${YOUR_DOMAIN}`)
-          body = body.replace(new RegExp(targetHost + targetPath, 'g'), YOUR_DOMAIN)
-          body = body.replace(new RegExp(targetPath + '/', 'g'), '/')
+          // More comprehensive URL replacements
+          // Replace full URLs
+          body = body.replace(new RegExp(`https://${targetHost.replace(/\./g, '\\.')}${targetPath.replace(/\//g, '\\/')}`, 'g'), `https://${YOUR_DOMAIN}`)
+          body = body.replace(new RegExp(`https://${targetHost.replace(/\./g, '\\.')}`, 'g'), `https://${YOUR_DOMAIN}`)
           
-          // Create new headers object and explicitly set content-type
+          // Replace relative URLs that include the path
+          body = body.replace(new RegExp(targetPath.replace(/\//g, '\\/'), 'g'), '')
+          
+          // Replace domain references
+          body = body.replace(new RegExp(targetHost.replace(/\./g, '\\.'), 'g'), YOUR_DOMAIN)
+          
+          // Handle specific Wix patterns
+          body = body.replace(/\/welcome-cheetos\//g, '/')
+          body = body.replace(/welcome-cheetos\//g, '')
+          
+          // Fix cookie domain issues
+          body = body.replace(/domain=allie2490\.wixsite\.com/g, `domain=${YOUR_DOMAIN}`)
+          body = body.replace(/Domain=allie2490\.wixsite\.com/g, `Domain=${YOUR_DOMAIN}`)
+          
+          // Create new headers
           const newHeaders = new Headers(response.headers)
-          newHeaders.set('Content-Type', contentType) // Preserve original content-type
+          newHeaders.set('Content-Type', contentType)
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
           newHeaders.delete('content-security-policy')
+          newHeaders.delete('content-security-policy-report-only')
+          newHeaders.delete('strict-transport-security')
           
-          // Return modified HTML with preserved content-type
+          // Fix cookie domains in Set-Cookie headers
+          const setCookieHeaders = newHeaders.getSetCookie?.() || []
+          newHeaders.delete('set-cookie')
+          setCookieHeaders.forEach(cookie => {
+            const fixedCookie = cookie.replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
+            newHeaders.append('set-cookie', fixedCookie)
+          })
+          
           return new Response(body, {
             status: response.status,
             statusText: response.statusText,
             headers: newHeaders
           })
         } else {
-          // For CSS, JS, images, etc. - pass through unchanged
+          // For binary files (images, fonts, etc.) - pass through unchanged
           const newHeaders = new Headers(response.headers)
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
           newHeaders.delete('content-security-policy')
+          newHeaders.delete('content-security-policy-report-only')
           
           return new Response(response.body, {
             status: response.status,
