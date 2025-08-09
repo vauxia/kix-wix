@@ -111,6 +111,23 @@ export default {
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
           newHeaders.delete('content-security-policy')
+
+          // Fix cookie domains in Set-Cookie headers
+          const setCookieHeader = response.headers.get('set-cookie')
+          if (setCookieHeader) {
+            // Split multiple cookies and fix each one
+            const cookies = setCookieHeader.split(',').map(cookie => {
+              return cookie
+                .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
+                .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${YOUR_DOMAIN}`)
+                .replace(/Domain=wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
+          })
+  
+          newHeaders.delete('set-cookie')
+          cookies.forEach(cookie => {
+          newHeaders.append('set-cookie', cookie.trim())
+          })
+          }
           
           return new Response(body, {
             status: response.status,
