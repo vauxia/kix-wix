@@ -113,21 +113,30 @@ export default {
           newHeaders.delete('content-security-policy')
 
           // Fix cookie domains in Set-Cookie headers
-          const setCookieHeader = response.headers.get('set-cookie')
-          if (setCookieHeader) {
-            // Split multiple cookies and fix each one
-            const cookies = setCookieHeader.split(',').map(cookie => {
-              return cookie
-                .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
-                .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${YOUR_DOMAIN}`)
-                .replace(/Domain=wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
-          })
+// Fix cookie domains in Set-Cookie headers
+if (response.headers.has('set-cookie')) {
+  // Get all set-cookie headers (there can be multiple)
+  const allSetCookieHeaders = []
   
-          newHeaders.delete('set-cookie')
-          cookies.forEach(cookie => {
-          newHeaders.append('set-cookie', cookie.trim())
-          })
-          }
+  // Iterate through all headers to find set-cookie headers
+  for (const [name, value] of response.headers.entries()) {
+    if (name.toLowerCase() === 'set-cookie') {
+      const fixedCookie = value
+        .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
+        .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${YOUR_DOMAIN}`)
+        .replace(/Domain=wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
+      allSetCookieHeaders.push(fixedCookie)
+    }
+  }
+  
+  // Remove all existing set-cookie headers
+  newHeaders.delete('set-cookie')
+  
+  // Add back the fixed cookies
+  allSetCookieHeaders.forEach(cookie => {
+    newHeaders.append('set-cookie', cookie)
+  })
+}
           
           return new Response(body, {
             status: response.status,
