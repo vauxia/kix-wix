@@ -137,6 +137,11 @@ export default {
                     body = body.replace(new RegExp(`url\\(['"]?https://${targetUser}.wixsite.com${targetPath}`, 'g'), `url('https://${YOUR_DOMAIN}`)
                     body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
                     body = body.replace(new RegExp(`href=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `href="https://${YOUR_DOMAIN}`)
+
+                    // Remove integrity attributes that cause hash mismatches
+                    body = body.replace(/\s+integrity="[^"]*"/g, '')
+                    body = body.replace(/\s+integrity='[^']*'/g, '')
+
                     // Fix TPA and navigation issues
                     body = body.replace(
                         /<script>/g,
