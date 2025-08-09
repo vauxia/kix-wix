@@ -1,12 +1,9 @@
-addEventListener('fetch', event => {
-    event.respondWith(handleRequest(event.request))
-  })
-  
-  async function handleRequest(request) {
+export default {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url)
     
     // Only proxy requests to www.xyz.com
-    if (url.hostname === 'cheet.tropicalsea.com') {
+    if (url.hostname === 'www.xyz.com') {
       // Construct the target URL
       const targetUrl = `https://allie2490.wixsite.com/welcome-cheetos${url.pathname}${url.search}`
       
@@ -33,3 +30,4 @@ addEventListener('fetch', event => {
     // For other hostnames, return original request
     return fetch(request)
   }
+}
