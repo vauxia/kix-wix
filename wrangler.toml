@@ -1,0 +1,7 @@
+name = "proxy-worker"
+main = "index.js"
+compatibility_date = "2023-05-18"
+
+[env.production]
+name = "proxy-worker"
+route = "cheet.tropicalsea.com/*"
