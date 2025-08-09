@@ -133,37 +133,50 @@ export default {
                     // CSS/JS - modify URLs but be careful
                     let body = await response.text()
 
-                    // Inject TPA error suppression at the very top of the page
+// More aggressive TPA suppression - inject right after <head>
                     body = body.replace(
                         /<head>/i,
                         `<head>
 <script>
-// Comprehensive TPA error suppression
+// Intercept and suppress TPA messages at the source
 (function() {
-  const originalConsoleError = console.error;
-  const originalConsoleWarn = console.warn;
+  // Override window.parent.postMessage calls
+  if (window.parent && window.parent.postMessage) {
+    const originalPostMessage = window.parent.postMessage;
+    window.parent.postMessage = function(message, origin, transfer) {
+      // Block TPA messages
+      if (message && typeof message === 'object' && 
+          (message.type === 'TPA_MESSAGE' || JSON.stringify(message).includes('TPA'))) {
+        return;
+      }
+      return originalPostMessage.call(this, message, origin, transfer);
+    };
+  }
   
-  console.error = function(...args) {
-    const message = args[0];
-    if (typeof message === 'string' && (
-      message.includes('TPA message') ||
-      message.includes('destroyed page') ||
-      message.includes('siteInfo')
-    )) {
-      return; // Suppress TPA errors
+  // Override addEventListener for message events
+  const originalAddEventListener = window.addEventListener;
+  window.addEventListener = function(type, listener, options) {
+    if (type === 'message') {
+      const wrappedListener = function(event) {
+        // Filter out TPA messages
+        if (event.data && typeof event.data === 'object' &&
+            (event.data.type === 'TPA_MESSAGE' || JSON.stringify(event.data).includes('TPA'))) {
+          return;
+        }
+        return listener.call(this, event);
+      };
+      return originalAddEventListener.call(this, type, wrappedListener, options);
     }
-    originalConsoleError.apply(console, args);
+    return originalAddEventListener.call(this, type, listener, options);
   };
   
-  console.warn = function(...args) {
-    const message = args[0];
-    if (typeof message === 'string' && (
-      message.includes('TPA message') ||
-      message.includes('destroyed page')
-    )) {
-      return; // Suppress TPA warnings
+  // Suppress console output
+  const originalLog = console.log;
+  console.log = function(...args) {
+    if (args[0] && typeof args[0] === 'string' && args[0].includes('TPA message')) {
+      return;
     }
-    originalConsoleWarn.apply(console, args);
+    originalLog.apply(console, args);
   };
 })();
 </script>`
