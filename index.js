@@ -2,8 +2,6 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
     
-    // Only proxy requests to www.xyz.com
-    if (url.hostname === 'www.xyz.com') {
       // Construct the target URL
       const targetUrl = `https://allie2490.wixsite.com/welcome-cheetos${url.pathname}${url.search}`
       
@@ -25,9 +23,6 @@ export default {
       newResponse.headers.delete('content-security-policy')
       
       return newResponse
-    }
     
-    // For other hostnames, return original request
-    return fetch(request)
   }
 }
