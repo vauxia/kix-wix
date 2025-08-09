@@ -1,4 +1,4 @@
-name = "proxy-worker"
+name = "kix-wix"
 main = "index.js"
 compatibility_date = "2023-05-18"
 
