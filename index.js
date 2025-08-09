@@ -1,3 +1,33 @@
+function fixCookieDomains(headers, yourDomain, targetHost) {
+  const newHeaders = new Headers(headers)
+  
+  if (headers.has('set-cookie')) {
+    const allSetCookieHeaders = []
+    
+    // Iterate through all headers to find set-cookie headers
+    for (const [name, value] of headers.entries()) {
+      if (name.toLowerCase() === 'set-cookie') {
+        const fixedCookie = value
+          .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${yourDomain}`)
+          .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${yourDomain}`)
+          .replace(/Domain=wixsite\.com/gi, `Domain=${yourDomain}`)
+          .replace(new RegExp(`Domain=${targetHost}`, 'gi'), `Domain=${yourDomain}`)
+        allSetCookieHeaders.push(fixedCookie)
+      }
+    }
+    
+    // Remove all existing set-cookie headers
+    newHeaders.delete('set-cookie')
+    
+    // Add back the fixed cookies
+    allSetCookieHeaders.forEach(cookie => {
+      newHeaders.append('set-cookie', cookie)
+    })
+  }
+  
+  return newHeaders
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
@@ -35,7 +65,7 @@ export default {
         // Handle different content types appropriately
         if (contentType.includes('application/json')) {
           // JSON - pass through unchanged to avoid parse errors
-          const newHeaders = new Headers(response.headers)
+          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
           newHeaders.delete('content-security-policy')
@@ -82,7 +112,7 @@ export default {
           
           body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
           
-          const newHeaders = new Headers(response.headers)
+          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
@@ -106,38 +136,12 @@ export default {
           body = body.replace(/src=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `src="https://${YOUR_DOMAIN}`)
           body = body.replace(/href=['"]https:\/\/allie2490\.wixsite\.com\/welcome-cheetos/g, `href="https://${YOUR_DOMAIN}`)
           
-          const newHeaders = new Headers(response.headers)
+          const newHeaders = fixCookieDomains(response.headers, YOUR_DOMAIN, targetHost)
           newHeaders.set('Content-Type', contentType)
           newHeaders.set('Access-Control-Allow-Origin', '*')
           newHeaders.delete('x-frame-options')
           newHeaders.delete('content-security-policy')
 
-          // Fix cookie domains in Set-Cookie headers
-// Fix cookie domains in Set-Cookie headers
-if (response.headers.has('set-cookie')) {
-  // Get all set-cookie headers (there can be multiple)
-  const allSetCookieHeaders = []
-  
-  // Iterate through all headers to find set-cookie headers
-  for (const [name, value] of response.headers.entries()) {
-    if (name.toLowerCase() === 'set-cookie') {
-      const fixedCookie = value
-        .replace(/Domain=allie2490\.wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
-        .replace(/Domain=\.allie2490\.wixsite\.com/gi, `Domain=.${YOUR_DOMAIN}`)
-        .replace(/Domain=wixsite\.com/gi, `Domain=${YOUR_DOMAIN}`)
-      allSetCookieHeaders.push(fixedCookie)
-    }
-  }
-  
-  // Remove all existing set-cookie headers
-  newHeaders.delete('set-cookie')
-  
-  // Add back the fixed cookies
-  allSetCookieHeaders.forEach(cookie => {
-    newHeaders.append('set-cookie', cookie)
-  })
-}
-          
           return new Response(body, {
             status: response.status,
             statusText: response.statusText,
