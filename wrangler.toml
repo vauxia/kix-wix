@@ -2,6 +2,9 @@ name = "kix-wix"
 main = "index.js"
 compatibility_date = "2023-05-18"
 
+[vars]
+TARGET_ORIGIN = "https://grace7ling.wixsite.com/needy"
+
 [env.production]
 name = "proxy-worker"
 route = "cheet.tropicalsea.com/*"

@@ -37,7 +37,7 @@ export default {
         const url = new URL(request.url)
 
         // Configuration
-        const TARGET_ORIGIN = env.TARGET_ORIGIN || 'https://allie2490.wixsite.com/welcome-cheetos'
+        const TARGET_ORIGIN = env.TARGET_ORIGIN || 'https://example.wixsite.com/example'
         const YOUR_DOMAIN = url.hostname
 
         // Parse the target URL
