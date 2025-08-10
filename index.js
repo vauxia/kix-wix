@@ -1,4 +1,4 @@
-function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
+Ifunction fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
     const newHeaders = new Headers(headers)
 
     if (headers.has('set-cookie')) {
@@ -276,6 +276,9 @@ document.createElement = function(tagName) {
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
                     newHeaders.set('Content-Type', contentType)
 
+                    // Cache HTML for 5 minutes browser, 1 hour Cloudflare
+                    newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600')
+
                     return new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
@@ -296,6 +299,9 @@ document.createElement = function(tagName) {
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
                     newHeaders.set('Content-Type', contentType) // Preserve exact MIME type
 
+                    // Cache CSS/JS assets for 24 hours browser, 7 days Cloudflare
+                    newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=604800')
+
                     return new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
@@ -305,6 +311,17 @@ document.createElement = function(tagName) {
                 } else {
                     // Everything else (images, fonts, etc.) - pass through unchanged
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+
+                    // Cache static assets aggressively - 24 hours browser, 30 days Cloudflare
+                    if (contentType.includes('image/') ||
+                        contentType.includes('font/') ||
+                        contentType.includes('application/octet-stream') ||
+                        url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|eot)$/)) {
+                        newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=2592000')
+                    } else {
+                        // Other assets - shorter cache
+                        newHeaders.set('Cache-Control', 'public, max-age=3600, s-maxage=86400')
+                    }
 
                     return new Response(response.body, {
                         status: response.status,
