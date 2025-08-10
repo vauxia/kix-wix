@@ -63,7 +63,8 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
+            //const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
+            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`;
 
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
