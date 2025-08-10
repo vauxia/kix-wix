@@ -288,11 +288,21 @@ document.createElement = function(tagName) {
                     // Cache HTML for 5 minutes browser, 1 hour Cloudflare
                     newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600')
 
-                    return new Response(body, {
+                    // Create the response
+                    const cachedResponse = new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders
-                    })
+                    });
+
+                    // Try to cache it manually
+                    const cacheKey = new Request(request.url, {
+                        method: 'GET',
+                        headers: request.headers
+                    });
+                    ctx.waitUntil(caches.default.put(cacheKey, cachedResponse.clone()));
+
+                    return cachedResponse;
 
                 } else if (contentType.includes('text/css') ||
                     contentType.includes('application/javascript') ||
