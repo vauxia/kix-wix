@@ -63,8 +63,35 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            // Handle Wix API calls FIRST - pass them through with original host header
-            if (url.pathname.startsWith('/_api/') ||
+            // Handle Wix API calls FIRST - be more selective about which ones to proxy
+            if (url.pathname.startsWith('/_api/wix-data') ||
+                url.pathname.startsWith('/_api/v2/dynamicmodel') ||
+                url.pathname.startsWith('/_api/v1/access-tokens')) {
+
+                // For critical data/schema APIs, pass through with minimal changes
+                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+
+                const modifiedRequest = new Request(targetUrl, {
+                    method: request.method,
+                    headers: request.headers, // Use original headers exactly
+                    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
+                })
+
+                try {
+                    const response = await fetch(modifiedRequest)
+                    // Return response with minimal header changes
+                    const newHeaders = new Headers(response.headers)
+                    newHeaders.set('Access-Control-Allow-Origin', '*')
+
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: newHeaders
+                    })
+                } catch (error) {
+                    return new Response('Critical API Error: ' + error.message, { status: 500 })
+                }
+            } else if (url.pathname.startsWith('/_api/') ||
                 url.pathname.startsWith('/_partials/') ||
                 url.pathname.includes('wix-thunderbolt')) {
 
