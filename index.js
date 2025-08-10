@@ -63,23 +63,28 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            // Handle Wix API calls FIRST - be more selective about which ones to proxy
-            if (url.pathname.startsWith('/_api/wix-data') ||
+            // Handle Wix API calls FIRST - be very selective about header modifications
+            if (url.pathname.startsWith('/_api/cloud-data') ||
+                url.pathname.startsWith('/_api/wix-data') ||
                 url.pathname.startsWith('/_api/v2/dynamicmodel') ||
                 url.pathname.startsWith('/_api/v1/access-tokens')) {
 
-                // For critical data/schema APIs, pass through with minimal changes
+                // For critical data APIs, proxy with original headers but fix the target URL
                 const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
                 const modifiedRequest = new Request(targetUrl, {
                     method: request.method,
-                    headers: request.headers, // Use original headers exactly
+                    headers: {
+                        ...request.headers,
+                        'Host': targetHost, // Only change the host
+                        'Referer': request.headers.get('referer')?.replace(YOUR_DOMAIN, targetHost) || targetURL.origin + targetPath
+                    },
                     body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
                 })
 
                 try {
                     const response = await fetch(modifiedRequest)
-                    // Return response with minimal header changes
+                    // Minimal header changes for critical APIs
                     const newHeaders = new Headers(response.headers)
                     newHeaders.set('Access-Control-Allow-Origin', '*')
 
