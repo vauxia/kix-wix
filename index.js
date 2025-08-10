@@ -60,15 +60,6 @@ export default {
             : null
         let newHeaders;
 
-        // Block analytics and tracking requests
-        if (url.hostname === 'frog.wix.com' ||
-            url.hostname === 'panorama.wixapps.net' ||
-            url.hostname === 'static.parastorage.com' && url.pathname.includes('fedops') ||
-            url.pathname.includes('bolt-performance') ||
-            url.pathname.includes('bulklog')) {
-            return new Response('', { status: 204 }); // Return empty successful response
-        }
-
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
