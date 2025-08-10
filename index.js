@@ -64,8 +64,8 @@ export default {
         if (url.hostname === YOUR_DOMAIN) {
 
             // For ALL API calls, completely rewrite request headers to match original domain
-            const pathname = url.pathname === '/' ? '' : url.pathname;
-            const targetUrl = `${targetURL.origin}${targetPath}${pathname}${url.search}`;
+            const cleanTargetPath = targetPath.replace(/\/$/, '');
+            const targetUrl = `${targetURL.origin}${cleanTargetPath}${url.pathname}${url.search}`;
 
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
