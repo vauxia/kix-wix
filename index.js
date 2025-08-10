@@ -21,15 +21,18 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
 
         // Add back the fixed cookies
         allSetCookieHeaders.forEach(cookie => {
-            //newHeaders.append('set-cookie', cookie)
+            newHeaders.append('set-cookie', cookie)
         })
-        // Force Cloudflare to cache this response
-        newHeaders.delete('set-cookie'); // Cookies prevent caching
-        newHeaders.delete('vary');
-        newHeaders.delete('pragma');
-        newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
-
     }
+    // Force Cloudflare to cache this response
+    // NOTE that this deletes the cookies we just carefully modified.
+    // If cookies are necessary, comment this out. If not, maybe don't use the above block
+    newHeaders.delete('set-cookie'); // Cookies prevent caching
+
+    newHeaders.delete('cache-control');
+    newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
+    newHeaders.set('CF-Cache-Status', 'MISS');
+
     newHeaders.set('Access-Control-Allow-Origin', '*')
     newHeaders.delete('x-frame-options')
     newHeaders.delete('content-security-policy')
