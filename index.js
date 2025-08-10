@@ -24,15 +24,6 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
             newHeaders.append('set-cookie', cookie)
         })
     }
-    // Force Cloudflare to cache this response
-    // NOTE that this deletes the cookies we just carefully modified.
-    // If cookies are necessary, comment this out. If not, maybe don't use the above block
-    newHeaders.delete('set-cookie'); // Cookies prevent caching
-
-    newHeaders.delete('age'); // Cookies prevent caching
-    newHeaders.delete('cache-control');
-    newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
-
     newHeaders.set('Access-Control-Allow-Origin', '*')
     newHeaders.delete('x-frame-options')
     newHeaders.delete('content-security-policy')
@@ -60,14 +51,23 @@ export default {
             : null
         let newHeaders;
 
+        // Block analytics and tracking requests
+        if (url.hostname === 'frog.wix.com' ||
+            url.hostname === 'panorama.wixapps.net' ||
+            url.hostname === 'static.parastorage.com' && url.pathname.includes('fedops') ||
+            url.pathname.includes('bolt-performance') ||
+            url.pathname.includes('bulklog')) {
+            return new Response('', { status: 204 }); // Return empty successful response
+        }
+
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
-            //const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`;
-
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
+
+                // For ALL API calls, completely rewrite request headers to match original domain
+                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
                 // Create headers that look like they're coming from the original Wix site
                 const modifiedHeaders = new Headers(request.headers)
@@ -105,6 +105,8 @@ export default {
             } else if (url.pathname.startsWith('/_partials/') ||
                 url.pathname.includes('wix-thunderbolt')) {
 
+                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+
                 const modifiedRequest = new Request(targetUrl, {
                     method: request.method,
                     headers: {
@@ -129,6 +131,9 @@ export default {
                     return new Response('API Error: ' + error.message, { status: 500 })
                 }
             }
+
+            // Construct the target URL
+            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
             // Create new request
             const modifiedRequest = new Request(targetUrl, {
@@ -158,24 +163,8 @@ export default {
                     })
 
                 } else if (contentType.includes('text/html')) {
-
-                    // Create cache key
-                    const cacheKey = new Request(request.url, {
-                        method: 'GET',
-                        headers: { 'User-Agent': request.headers.get('User-Agent') || '' }
-                    });
-
-                    // Check cache first
-                    const cachedResponse = await caches.default.match(cacheKey);
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-
                     // HTML - modify URLs carefully to preserve JSON
                     let body = await response.text()
-
-                    // Remove WIX header
-                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>[\s\S]*?<\/div>/gi, '');
 
                     // Function to safely replace URLs in JSON strings
                     function replaceInJson(text, oldDomain, newDomain, oldPath) {
@@ -290,16 +279,11 @@ document.createElement = function(tagName) {
                     // Cache HTML for 5 minutes browser, 1 hour Cloudflare
                     newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600')
 
-                    const responseToCache = new Response(body, {
+                    return new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders
-                    });
-
-                    // Cache the response
-                    ctx.waitUntil(caches.default.put(cacheKey, responseToCache.clone()));
-
-                    return responseToCache;
+                    })
 
                 } else if (contentType.includes('text/css') ||
                     contentType.includes('application/javascript') ||
