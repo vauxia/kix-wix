@@ -63,9 +63,7 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            // For ALL API calls, completely rewrite request headers to match original domain
-            const cleanTargetPath = targetPath.replace(/\/$/, '');
-            const targetUrl = `${targetURL.origin}${cleanTargetPath}${url.pathname}${url.search}`;
+            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
 
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
@@ -183,25 +181,25 @@ export default {
                         // Replace JSON-escaped URLs (with \/)
                         text = text.replace(
                             new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\\\\\/')}`, 'g'),
-                            `https:\\/\\/${newDomain}/`
+                            `https:\\/\\/${newDomain}`
                         )
                         text = text.replace(
                             new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}`, 'g'),
                             `https:\\/\\/${newDomain}`
                         )
 
-                        // Replace regular URLs in HTML - but keep the leading slash
+                        // Replace regular URLs in HTML
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}`, 'g'),
-                            `https://${newDomain}/`
+                            `https://${newDomain}`
                         )
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}`, 'g'),
                             `https://${newDomain}`
                         )
 
-                        // Replace relative paths - but preserve leading slashes
-                        text = text.replace(new RegExp(`"${oldPath.replace(/\//g, '\\/')}([^"]*)"`, 'g'), '"/\$1"')
+                        // Replace relative paths
+                        text = text.replace(new RegExp(oldPath.replace(/\//g, '\\/'), 'g'), '')
                         text = text.replace(new RegExp(oldDomain.replace(/\./g, '\\.'), 'g'), newDomain)
 
                         return text
