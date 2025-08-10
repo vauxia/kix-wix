@@ -187,6 +187,9 @@ export default {
                     // HTML - modify URLs carefully to preserve JSON
                     let body = await response.text()
 
+                    // Remove WIX header
+                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>.*?<\/div>/gis, '');
+
                     // Function to safely replace URLs in JSON strings
                     function replaceInJson(text, oldDomain, newDomain, oldPath) {
                         // Replace JSON-escaped URLs (with \/)
