@@ -180,6 +180,33 @@ export default {
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
                     body = body.replace(/\s+integrity='[^']*'/g, '')
 
+                    // Also remove integrity from any script/link tags specifically
+                    body = body.replace(/<script([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<script$1$2>')
+                    body = body.replace(/<link([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<link$1$2>')
+
+                    // Add JavaScript to remove integrity from dynamically added elements
+                    body = body.replace(
+                        /<\/head>/i,
+                        `<script>
+// Remove integrity from dynamically added scripts/links
+const originalCreateElement = document.createElement;
+document.createElement = function(tagName) {
+  const element = originalCreateElement.call(this, tagName);
+  if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'link') {
+    const originalSetAttribute = element.setAttribute;
+    element.setAttribute = function(name, value) {
+      if (name.toLowerCase() === 'integrity') {
+        return; // Skip setting integrity attribute
+      }
+      return originalSetAttribute.call(this, name, value);
+    };
+  }
+  return element;
+};
+</script>
+</head>`
+                    )
+
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
                     newHeaders.set('Content-Type', contentType)
 
