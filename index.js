@@ -69,16 +69,25 @@ export default {
                 url.pathname.startsWith('/_api/v2/dynamicmodel') ||
                 url.pathname.startsWith('/_api/v1/access-tokens')) {
 
-                // For critical data APIs, proxy with original headers but fix the target URL
+                // For critical data APIs, completely rewrite request headers to match original domain
                 const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+
+                // Create headers that look like they're coming from the original Wix site
+                const modifiedHeaders = new Headers(request.headers)
+                modifiedHeaders.set('Host', targetHost)
+                modifiedHeaders.set('Origin', targetURL.origin)
+                modifiedHeaders.set('Referer', targetURL.origin + targetPath)
+
+                // Fix any other domain references in headers
+                for (const [name, value] of modifiedHeaders.entries()) {
+                    if (typeof value === 'string' && value.includes(YOUR_DOMAIN)) {
+                        modifiedHeaders.set(name, value.replace(new RegExp(YOUR_DOMAIN, 'g'), targetHost))
+                    }
+                }
 
                 const modifiedRequest = new Request(targetUrl, {
                     method: request.method,
-                    headers: {
-                        ...request.headers,
-                        'Host': targetHost, // Only change the host
-                        'Referer': request.headers.get('referer')?.replace(YOUR_DOMAIN, targetHost) || targetURL.origin + targetPath
-                    },
+                    headers: modifiedHeaders,
                     body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
                 })
 
