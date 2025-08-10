@@ -143,6 +143,11 @@ export default {
 
             // Construct the target URL
             const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+            // Add this right after the targetUrl construction:
+            console.log('Original URL:', request.url);
+            console.log('Target URL:', targetUrl);
+            console.log('Pathname:', url.pathname);
+            console.log('Target Path:', targetPath);
 
             // Create new request
             const modifiedRequest = new Request(targetUrl, {
