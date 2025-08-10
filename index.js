@@ -184,6 +184,24 @@ export default {
                     body = body.replace(/<script([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<script$1$2>')
                     body = body.replace(/<link([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<link$1$2>')
 
+                    // Add CSS fix for clickable menu items
+                    body = body.replace(
+                        /<\/head>/i,
+                        `<style>
+/* Fix menu click issues */
+.JS76Uv, .yRj2ms, [id*="DrpDwnMn"] p {
+  pointer-events: none !important;
+}
+.UiHgGh, a[data-testid="linkElement"] {
+  pointer-events: auto !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 999 !important;
+}
+</style>
+</head>`
+                    )
+
                     // Add JavaScript to remove integrity from dynamically added elements
                     body = body.replace(
                         /<\/head>/i,
