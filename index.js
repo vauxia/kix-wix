@@ -51,6 +51,15 @@ export default {
             : null
         let newHeaders;
 
+        // Block analytics and tracking requests
+        if (url.hostname === 'frog.wix.com' ||
+            url.hostname === 'panorama.wixapps.net' ||
+            url.hostname === 'static.parastorage.com' && url.pathname.includes('fedops') ||
+            url.pathname.includes('bolt-performance') ||
+            url.pathname.includes('bulklog')) {
+            return new Response('', { status: 204 }); // Return empty successful response
+        }
+
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
@@ -85,6 +94,7 @@ export default {
                     return new Response('API Error: ' + error.message, { status: 500 })
                 }
             }
+
             // Construct the target URL
             const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
@@ -150,62 +160,48 @@ export default {
 
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
-                    // Add TPA suppression and error handling to HTML only
-                    body = body.replace(
-                        /<\/head>/i,
-                        `<style>
-/* Hide any TPA-related elements */
-[data-comp*="TPA"], [id*="TPA"], [class*="TPA"] { display: none !important; }
-</style>
-<script>
-// Override console methods to filter TPA messages
-(function() {
-  const originalMethods = ['log', 'warn', 'error', 'info'];
-  originalMethods.forEach(method => {
-    const original = console[method];
-    console[method] = function(...args) {
-      const message = args.join(' ');
-      if (message.includes('TPA message') || message.includes('destroyed page')) {
-        return; // Suppress TPA messages
-      }
-      original.apply(console, args);
-    };
-  });
-})();
-</script>
-</head>`
-                    )
-
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
                     body = body.replace(/\s+integrity='[^']*'/g, '')
-
-                    // Also remove integrity from any script/link tags specifically
                     body = body.replace(/<script([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<script$1$2>')
                     body = body.replace(/<link([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<link$1$2>')
 
-                    // Add CSS fix for clickable menu items
-                    body = body.replace(
-                        /<\/head>/i,
-                        `<style>
-/* Fix menu click issues */
-.JS76Uv, .yRj2ms, [id*="DrpDwnMn"] p {
-  pointer-events: none !important;
-}
-.UiHgGh, a[data-testid="linkElement"] {
-  pointer-events: auto !important;
-  display: block !important;
-  position: relative !important;
-  z-index: 999 !important;
-}
-</style>
-</head>`
-                    )
-
-                    // Add JavaScript to remove integrity from dynamically added elements
+                    // Add comprehensive analytics blocking and TPA suppression
                     body = body.replace(
                         /<\/head>/i,
                         `<script>
+// Block analytics and tracking
+const originalFetch = window.fetch;
+window.fetch = function(url, options) {
+  if (typeof url === 'string' && (
+    url.includes('frog.wix.com') ||
+    url.includes('panorama.wixapps.net') ||
+    url.includes('bolt-performance') ||
+    url.includes('bulklog') ||
+    url.includes('fedops')
+  )) {
+    console.log('🚫 Blocked analytics request:', url);
+    return Promise.resolve(new Response('', { status: 204 }));
+  }
+  return originalFetch.apply(this, arguments);
+};
+
+// Override XMLHttpRequest for analytics blocking
+const originalXHROpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url) {
+  if (typeof url === 'string' && (
+    url.includes('frog.wix.com') ||
+    url.includes('panorama.wixapps.net') ||
+    url.includes('bolt-performance') ||
+    url.includes('bulklog')
+  )) {
+    console.log('🚫 Blocked XHR analytics request:', url);
+    this.open = function() {}; // Disable this request
+    return;
+  }
+  return originalXHROpen.apply(this, arguments);
+};
+
 // Remove integrity from dynamically added scripts/links
 const originalCreateElement = document.createElement;
 document.createElement = function(tagName) {
@@ -221,6 +217,21 @@ document.createElement = function(tagName) {
   }
   return element;
 };
+
+// Override console methods to filter TPA messages
+(function() {
+  const originalMethods = ['log', 'warn', 'error', 'info'];
+  originalMethods.forEach(method => {
+    const original = console[method];
+    console[method] = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('TPA message') || message.includes('destroyed page')) {
+        return; // Suppress TPA messages
+      }
+      original.apply(console, args);
+    };
+  });
+})();
 </script>
 </head>`
                     )
