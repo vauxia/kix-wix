@@ -63,8 +63,8 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            //const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
-            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`;
+            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`.replace(/([^:]\/)\/+/g, '$1');
+            //const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`;
 
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
@@ -191,8 +191,8 @@ export default {
 
                         // Replace regular URLs in HTML
                         text = text.replace(
-                            new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}([^"\\s]*)`, 'g'),
-                            `https://${newDomain}/$1`
+                            new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}`, 'g'),
+                            `https://${newDomain}`
                         )
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}`, 'g'),
