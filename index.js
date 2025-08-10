@@ -188,8 +188,6 @@ Target Path: ${targetPath}
 Constructed Target URL: ${targetUrl}
 Response Status: ${response.status}
 Content Type: ${contentType}
-Body Length: ${body.length}
-First 500 chars: ${body.substring(0, 500)}
 `, { headers: { 'Content-Type': 'text/plain' } });
 
                     // Create cache key
