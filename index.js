@@ -191,8 +191,8 @@ export default {
 
                         // Replace regular URLs in HTML
                         text = text.replace(
-                            new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}`, 'g'),
-                            `https://${newDomain}`
+                            new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}([^"\\s]*)`, 'g'),
+                            `https://${newDomain}/$1`
                         )
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}`, 'g'),
