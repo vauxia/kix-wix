@@ -29,9 +29,9 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
     // If cookies are necessary, comment this out. If not, maybe don't use the above block
     newHeaders.delete('set-cookie'); // Cookies prevent caching
 
+    newHeaders.delete('age'); // Cookies prevent caching
     newHeaders.delete('cache-control');
     newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
-    newHeaders.set('CF-Cache-Status', 'MISS');
 
     newHeaders.set('Access-Control-Allow-Origin', '*')
     newHeaders.delete('x-frame-options')
@@ -172,6 +172,18 @@ export default {
                     })
 
                 } else if (contentType.includes('text/html')) {
+                    // Create cache key
+                    const cacheKey = new Request(request.url, {
+                        method: 'GET',
+                        headers: { 'User-Agent': request.headers.get('User-Agent') || '' }
+                    });
+
+                    // Check cache first
+                    const cachedResponse = await caches.default.match(cacheKey);
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+
                     // HTML - modify URLs carefully to preserve JSON
                     let body = await response.text()
 
@@ -288,21 +300,16 @@ document.createElement = function(tagName) {
                     // Cache HTML for 5 minutes browser, 1 hour Cloudflare
                     newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600')
 
-                    // Create the response
-                    const cachedResponse = new Response(body, {
+                    const responseToCache = new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders
                     });
 
-                    // Try to cache it manually
-                    const cacheKey = new Request(request.url, {
-                        method: 'GET',
-                        headers: request.headers
-                    });
-                    ctx.waitUntil(caches.default.put(cacheKey, cachedResponse.clone()));
+                    // Cache the response
+                    ctx.waitUntil(caches.default.put(cacheKey, responseToCache.clone()));
 
-                    return cachedResponse;
+                    return responseToCache;
 
                 } else if (contentType.includes('text/css') ||
                     contentType.includes('application/javascript') ||
