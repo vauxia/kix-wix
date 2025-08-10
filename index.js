@@ -183,25 +183,25 @@ export default {
                         // Replace JSON-escaped URLs (with \/)
                         text = text.replace(
                             new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\\\\\/')}`, 'g'),
-                            `https:\\/\\/${newDomain}`
+                            `https:\\/\\/${newDomain}/`
                         )
                         text = text.replace(
                             new RegExp(`https:\\\\\\/\\\\\\/${oldDomain.replace(/\./g, '\\.')}`, 'g'),
                             `https:\\/\\/${newDomain}`
                         )
 
-                        // Replace regular URLs in HTML
+                        // Replace regular URLs in HTML - but keep the leading slash
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}${oldPath.replace(/\//g, '\\/')}`, 'g'),
-                            `https://${newDomain}`
+                            `https://${newDomain}/`
                         )
                         text = text.replace(
                             new RegExp(`https://${oldDomain.replace(/\./g, '\\.')}`, 'g'),
                             `https://${newDomain}`
                         )
 
-                        // Replace relative paths
-                        text = text.replace(new RegExp(oldPath.replace(/\//g, '\\/'), 'g'), '')
+                        // Replace relative paths - but preserve leading slashes
+                        text = text.replace(new RegExp(`"${oldPath.replace(/\//g, '\\/')}([^"]*)"`, 'g'), '"/\$1"')
                         text = text.replace(new RegExp(oldDomain.replace(/\./g, '\\.'), 'g'), newDomain)
 
                         return text
