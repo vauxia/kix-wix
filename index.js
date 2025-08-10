@@ -51,40 +51,40 @@ export default {
             : null
         let newHeaders;
 
-        // Handle Wix API calls - pass them through with original host header
-        if (url.pathname.startsWith('/_api/') ||
-            url.pathname.startsWith('/_partials/') ||
-            url.pathname.includes('wix-thunderbolt')) {
-
-            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
-
-            const modifiedRequest = new Request(targetUrl, {
-                method: request.method,
-                headers: {
-                    ...request.headers,
-                    'Host': targetHost,
-                    'Origin': targetURL.origin,
-                    'Referer': targetURL.origin + targetPath
-                },
-                body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
-            })
-
-            try {
-                const response = await fetch(modifiedRequest)
-                const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
-
-                return new Response(response.body, {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: newHeaders
-                })
-            } catch (error) {
-                return new Response('API Error: ' + error.message, { status: 500 })
-            }
-        }
-
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
+
+            // Handle Wix API calls FIRST - pass them through with original host header
+            if (url.pathname.startsWith('/_api/') ||
+                url.pathname.startsWith('/_partials/') ||
+                url.pathname.includes('wix-thunderbolt')) {
+
+                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+
+                const modifiedRequest = new Request(targetUrl, {
+                    method: request.method,
+                    headers: {
+                        ...request.headers,
+                        'Host': targetHost,
+                        'Origin': targetURL.origin,
+                        'Referer': targetURL.origin + targetPath
+                    },
+                    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
+                })
+
+                try {
+                    const response = await fetch(modifiedRequest)
+                    const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: newHeaders
+                    })
+                } catch (error) {
+                    return new Response('API Error: ' + error.message, { status: 500 })
+                }
+            }
             // Construct the target URL
             const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
