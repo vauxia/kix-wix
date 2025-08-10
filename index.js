@@ -1,4 +1,4 @@
-Ifunction fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
+function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
     const newHeaders = new Headers(headers)
 
     if (headers.has('set-cookie')) {
