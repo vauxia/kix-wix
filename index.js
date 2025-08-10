@@ -75,6 +75,19 @@ export default {
             // For ALL API calls, completely rewrite request headers to match original domain
             const targetUrl = new URL(url.pathname + url.search, `${targetURL.origin}${targetPath}`).href
 
+            // TEMPORARY DEBUG - replace your HTML return with this:
+            return new Response(`
+DEBUG INFO:
+Original URL: ${request.url}
+URL Pathname: ${url.pathname}
+Target Origin: ${TARGET_ORIGIN}
+Target Host: ${targetHost}
+Target Path: ${targetPath}
+Constructed Target URL: ${targetUrl}
+Response Status: ${response.status}
+Content Type: ${contentType}
+`, { headers: { 'Content-Type': 'text/plain' } });
+
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
 
