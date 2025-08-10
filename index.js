@@ -63,13 +63,10 @@ export default {
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
-            // Handle Wix API calls FIRST - be very selective about header modifications
-            if (url.pathname.startsWith('/_api/cloud-data') ||
-                url.pathname.startsWith('/_api/wix-data') ||
-                url.pathname.startsWith('/_api/v2/dynamicmodel') ||
-                url.pathname.startsWith('/_api/v1/access-tokens')) {
+            // Handle ALL Wix API calls with proper domain header rewriting
+            if (url.pathname.startsWith('/_api/')) {
 
-                // For critical data APIs, completely rewrite request headers to match original domain
+                // For ALL API calls, completely rewrite request headers to match original domain
                 const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
                 // Create headers that look like they're coming from the original Wix site
@@ -93,7 +90,7 @@ export default {
 
                 try {
                     const response = await fetch(modifiedRequest)
-                    // Minimal header changes for critical APIs
+                    // Minimal header changes for API calls
                     const newHeaders = new Headers(response.headers)
                     newHeaders.set('Access-Control-Allow-Origin', '*')
 
@@ -103,10 +100,9 @@ export default {
                         headers: newHeaders
                     })
                 } catch (error) {
-                    return new Response('Critical API Error: ' + error.message, { status: 500 })
+                    return new Response('API Error: ' + error.message, { status: 500 })
                 }
-            } else if (url.pathname.startsWith('/_api/') ||
-                url.pathname.startsWith('/_partials/') ||
+            } else if (url.pathname.startsWith('/_partials/') ||
                 url.pathname.includes('wix-thunderbolt')) {
 
                 const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
