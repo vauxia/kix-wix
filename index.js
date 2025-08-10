@@ -177,6 +177,21 @@ export default {
                     })
 
                 } else if (contentType.includes('text/html')) {
+                    // TEMPORARY DEBUG - replace your HTML return with this:
+                    return new Response(`
+DEBUG INFO:
+Original URL: ${request.url}
+URL Pathname: ${url.pathname}
+Target Origin: ${TARGET_ORIGIN}
+Target Host: ${targetHost}
+Target Path: ${targetPath}
+Constructed Target URL: ${targetUrl}
+Response Status: ${response.status}
+Content Type: ${contentType}
+Body Length: ${body.length}
+First 500 chars: ${body.substring(0, 500)}
+`, { headers: { 'Content-Type': 'text/plain' } });
+
                     // Create cache key
                     const cacheKey = new Request(request.url, {
                         method: 'GET',
