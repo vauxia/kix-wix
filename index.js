@@ -60,14 +60,13 @@ export default {
             return new Response('', { status: 204 }); // Return empty successful response
         }
 
+        const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
             // Handle ALL Wix API calls with proper domain header rewriting
             if (url.pathname.startsWith('/_api/')) {
-
-                // For ALL API calls, completely rewrite request headers to match original domain
-                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
                 // Create headers that look like they're coming from the original Wix site
                 const modifiedHeaders = new Headers(request.headers)
@@ -105,8 +104,6 @@ export default {
             } else if (url.pathname.startsWith('/_partials/') ||
                 url.pathname.includes('wix-thunderbolt')) {
 
-                const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
-
                 const modifiedRequest = new Request(targetUrl, {
                     method: request.method,
                     headers: {
@@ -131,9 +128,6 @@ export default {
                     return new Response('API Error: ' + error.message, { status: 500 })
                 }
             }
-
-            // Construct the target URL
-            const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
             // Create new request
             const modifiedRequest = new Request(targetUrl, {
