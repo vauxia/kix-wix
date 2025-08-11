@@ -70,7 +70,7 @@ export default {
 
         // Check cache first and return if found
         const cacheUrl = new URL(request.url);
-        const cacheKey = new Request(cacheUrl.toString(), requestk);
+        const cacheKey = new Request(cacheUrl.toString(), request);
 
         const cachedResponse = await caches.default.match(cacheKey);
         if (cachedResponse) {
