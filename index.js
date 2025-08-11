@@ -75,8 +75,20 @@ export default {
 
         const cachedResponse = await caches.default.match(cacheKey);
         if (cachedResponse) {
-            return cachedResponse;
+            if (request.method === 'HEAD') {
+                // Return headers only for HEAD requests
+                return new Response(null, {
+                    status: cachedResponse.status,
+                    statusText: cachedResponse.statusText,
+                    headers: cachedResponse.headers
+                });
+            } else if (request.method === 'GET') {
+                // Return full response for GET
+                return cachedResponse;
+            }
         }
+        // Always use GET to retrieve upstream
+        const fetchMethod = request.method === 'HEAD' ? 'GET' : request.method;
 
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
@@ -98,7 +110,7 @@ export default {
                 }
 
                 const modifiedRequest = new Request(targetUrl, {
-                    method: request.method,
+                    method: fetchMethod,
                     headers: modifiedHeaders,
                     body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
                 })
@@ -121,7 +133,7 @@ export default {
                 url.pathname.includes('wix-thunderbolt')) {
 
                 const modifiedRequest = new Request(targetUrl, {
-                    method: request.method,
+                    method: fetchMethod,
                     headers: {
                         ...request.headers,
                         'Host': targetHost,
@@ -147,7 +159,7 @@ export default {
 
             // Create new request
             const modifiedRequest = new Request(targetUrl, {
-                method: request.method,
+                method: fetchMethod,
                 headers: {
                     ...request.headers,
                     'Host': targetHost,
