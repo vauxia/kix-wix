@@ -206,6 +206,19 @@ export default {
                         `<style>
 /* Hide any TPA-related elements */
 [data-comp*="TPA"], [id*="TPA"], [class*="TPA"] { display: none !important; }
+/* Hide Wix ads completely */
+#WIX_ADS, 
+div[id="WIX_ADS"], 
+a[href*="wix.com/lpviral"],
+div[data-testid="bannerLogo"] {
+    display: none !important; 
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
 </style>
 <script>
 // Block analytics and tracking
