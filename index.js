@@ -7,6 +7,14 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
         // Iterate through all headers to find set-cookie headers
         for (const [name, value] of headers.entries()) {
             if (name.toLowerCase() === 'set-cookie') {
+
+                // Skip Wix internal caching cookies
+                if (value.includes('ssr-caching=') ||
+                    value.includes('cache#desc=') ||
+                    value.includes('varnish=')) {
+                    continue; // Skip this cookie entirely
+                }
+
                 const fixedCookie = value
                     .replace(new RegExp(`Domain=${targetUser}.wixsite.com`, 'gi'), `Domain=${yourDomain}`)
                     .replace(new RegExp(`Domain=\.${targetUser}.wixsite.com`, 'gi'), `Domain=.${yourDomain}`)
