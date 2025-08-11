@@ -190,7 +190,7 @@ export default {
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
                     // Remove Wix ads CSS variables that create spacing
-                    body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
+                    //body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
                     //body = body.replace(/--sticky-offset:\s*[^;]+;?/gi, '--sticky-offset: 0;');
                     //body = body.replace(/--wix-ads-top-height:\s*[^;]+;?/gi, '--wix-ads-top-height: 0;');
 
