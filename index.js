@@ -190,9 +190,9 @@ export default {
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
                     // Remove Wix ads CSS variables that create spacing
-                    //body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
+                    body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
                     //body = body.replace(/--sticky-offset:\s*[^;]+;?/gi, '--sticky-offset: 0;');
-                    //body = body.replace(/--wix-ads-top-height:\s*[^;]+;?/gi, '--wix-ads-top-height: 0;');
+                    body = body.replace(/--wix-ads-top-height:\s*[^;]+;?/gi, '--wix-ads-top-height: 0;');
 
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
@@ -206,23 +206,6 @@ export default {
                         `<style>
 /* Hide any TPA-related elements */
 [data-comp*="TPA"], [id*="TPA"], [class*="TPA"] { display: none !important; }
-/* Hide Wix ads completely */
-#WIX_ADS, 
-div[id="WIX_ADS"], 
-.MyEGHM, 
-.czJOIz, 
-.ytGGBw,
-a[href*="wix.com/lpviral"],
-div[data-testid="bannerLogo"] {
-    display: none !important; 
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-</style>
 <script>
 // Block analytics and tracking
 const originalFetch = window.fetch;
