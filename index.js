@@ -196,7 +196,6 @@ export default {
 
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
-                    body = body.replace(/\s+integrity='[^']*'/g, '')
                     body = body.replace(/<script([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<script$1$2>')
                     body = body.replace(/<link([^>]*)\s+integrity="[^"]*"([^>]*)>/gi, '<link$1$2>')
 
@@ -209,7 +208,6 @@ export default {
 /* Hide Wix ads completely */
 #WIX_ADS, 
 div[id="WIX_ADS"], 
-.MyEGHM,
 .czJOIz, 
 .ytGGBw,
 a[href*="wix.com/lpviral"],
