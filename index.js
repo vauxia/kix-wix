@@ -190,8 +190,9 @@ export default {
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
                     // Remove WIX header and promotional content.
-                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>[\s\S]*?<\/div>/gi, '');
-                    body = body.replace(/<[^>]*href="[^"]*wix\.com[^"]*"[^>]*>[\s\S]*?<\/[^>]*>/gi, '');
+                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>.*?<\/div>/gis, '');
+                    body = body.replace(/<div[^>]*class="[^"]*MyEGHM[^"]*".*?<\/div>/gis, '');
+                    body = body.replace(/This website was built on Wix.*?<\/div>/gis, '');
 
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
