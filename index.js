@@ -206,6 +206,7 @@ export default {
                         `<style>
 /* Hide any TPA-related elements */
 [data-comp*="TPA"], [id*="TPA"], [class*="TPA"] { display: none !important; }
+</style>
 <script>
 // Block analytics and tracking
 const originalFetch = window.fetch;
