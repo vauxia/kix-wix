@@ -68,6 +68,16 @@ export default {
 
         const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
+        const cacheKey = new Request(request.url, {
+            method: 'GET',
+        });
+
+        // Check cache first for all content types
+        const cachedResponse = await caches.default.match(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
 
@@ -303,15 +313,18 @@ document.createElement = function(tagName) {
                     newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
                     newHeaders.set('Content-Type', contentType)
 
-                    // Cache HTML for 5 minutes browser, 1 hour Cloudflare
+                    // Cache HTML for 5 minutes browser,  hour Cloudflare
                     newHeaders.set('Cache-Control', 'public, max-age=300, s-maxage=3600')
 
-                    return new Response(body, {
+                    const responseToCache = new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders
-                    })
+                    });
 
+                    // Cache the response
+                    ctx.waitUntil(caches.default.put(cacheKey, responseToCache.clone()));
+                    return responseToCache;
                 } else if (contentType.includes('text/css') ||
                     contentType.includes('application/javascript') ||
                     contentType.includes('text/javascript')) {
@@ -329,11 +342,14 @@ document.createElement = function(tagName) {
                     // Cache CSS/JS assets for 24 hours browser, 7 days Cloudflare
                     newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=604800')
 
-                    return new Response(body, {
+                    const responseToCache = new Response(body, {
                         status: response.status,
                         statusText: response.statusText,
                         headers: newHeaders
-                    })
+                    });
+
+                    ctx.waitUntil(caches.default.put(cacheKey, responseToCache.clone()));
+                    return responseToCache;
 
                 } else {
                     // Everything else (images, fonts, etc.) - pass through unchanged
