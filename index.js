@@ -223,7 +223,7 @@ div[data-testid="bannerLogo"] {
 }
 /* Fix the floating menu */
 #comp-lvi6te78, .xISX5a {
-    top: 0 !important;
+    top: 400px !important;
 }
 </style>
 <script>
