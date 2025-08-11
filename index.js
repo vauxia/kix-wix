@@ -67,6 +67,7 @@ export default {
         }
 
         const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
+        console.log('getting ' + targetUrl);
 
         // Check cache first and return if found
         const cacheUrl = new URL(request.url);
