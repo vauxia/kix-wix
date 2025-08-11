@@ -28,6 +28,7 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
     newHeaders.delete('x-frame-options')
     newHeaders.delete('content-security-policy')
     newHeaders.delete('content-security-policy-report-only')
+    newHeaders.delete('age')
 
     return newHeaders
 }
@@ -187,6 +188,10 @@ export default {
                     }
 
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
+
+                    // Remove WIX header and promotional content.
+                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>[\s\S]*?<\/div>/gi, '');
+                    body = body.replace(/<[^>]*href="[^"]*wix\.com[^"]*"[^>]*>[\s\S]*?<\/[^>]*>/gi, '');
 
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
