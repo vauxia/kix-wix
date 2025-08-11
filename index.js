@@ -68,15 +68,10 @@ export default {
 
         const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
-        // Normalize cache key - always add trailing slash for root path
-        let normalizedUrl = request.url;
-        if (url.pathname === '' || (url.pathname === '/' && !request.url.endsWith('/'))) {
-            normalizedUrl = request.url.replace(/\/?$/, '/'); // Ensure trailing slash
-        }
-
-        const cacheKey = new Request(normalizedUrl, { method: 'GET' });
-
         // Check cache first and return if found
+        const cacheUrl = new URL(request.url);
+        const cacheKey = new Request(cacheUrl.toString(), requestk);
+
         const cachedResponse = await caches.default.match(cacheKey);
         if (cachedResponse) {
             return cachedResponse;
