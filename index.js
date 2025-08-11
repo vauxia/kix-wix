@@ -208,7 +208,6 @@ export default {
 /* Hide Wix ads completely */
 #WIX_ADS, 
 div[id="WIX_ADS"], 
-.czJOIz, 
 .ytGGBw,
 a[href*="wix.com/lpviral"],
 div[data-testid="bannerLogo"] {
