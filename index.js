@@ -190,9 +190,9 @@ export default {
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
                     // Remove WIX header and promotional content.
-                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>.*?<\/div>/gis, '');
-                    body = body.replace(/<div[^>]*class="[^"]*MyEGHM[^"]*".*?<\/div>/gis, '');
-                    body = body.replace(/This website was built on Wix.*?<\/div>/gis, '');
+                    body = body.replace(/<div[^>]*id="WIX_ADS"[^>]*>[\s\S]*?<\/div>/gi, '');
+                    body = body.replace(/<div[^>]*class="[^"]*MyEGHM[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+                    body = body.replace(/<[^>]*href="[^"]*wix\.com[^"]*"[^>]*>[\s\S]*?<\/[^>]*>/gi, '');
 
                     // Remove integrity attributes that cause hash mismatches
                     body = body.replace(/\s+integrity="[^"]*"/g, '')
@@ -203,7 +203,22 @@ export default {
                     // Add comprehensive analytics blocking and TPA suppression
                     body = body.replace(
                         /<\/head>/i,
-                        `<script>
+                        `<style>
+/* Hide any TPA-related elements */
+[data-comp*="TPA"], [id*="TPA"], [class*="TPA"] { display: none !important; }
+/* Remove Wix ads and fix spacing */
+#WIX_ADS, div[id="WIX_ADS"], .MyEGHM, .czJOIz, .ytGGBw { 
+    display: none !important; 
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+/* Hide links to wix.com */
+a[href*="wix.com"] {
+    display: none !important;
+}
+</style>
+<script>
 // Block analytics and tracking
 const originalFetch = window.fetch;
 window.fetch = function(url, options) {
