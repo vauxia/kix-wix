@@ -223,7 +223,11 @@ div[data-testid="bannerLogo"] {
 }
 /* Fix the floating menu */
 #comp-lvi6te78, .xISX5a {
+    position: fixed !important;
     top: 200px !important;
+    left: 50% !important;
+    margin-left: calc(980px/2 + 20px) !important; /* Half of content width + 20px spacing */
+    right: auto !important;
 }
 </style>
 <script>
