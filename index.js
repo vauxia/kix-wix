@@ -211,6 +211,7 @@ export default {
 div[id="WIX_ADS"], 
 .MyEGHM,
 .czJOIz, 
+.ytGGBw,
 a[href*="wix.com/lpviral"],
 div[data-testid="bannerLogo"] {
     display: none !important; 
