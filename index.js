@@ -190,7 +190,7 @@ export default {
                     body = replaceInJson(body, targetHost, YOUR_DOMAIN, targetPath)
 
                     // Remove Wix ads CSS variables that create spacing
-                    body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
+                    //body = body.replace(/--wix-ads-height:\s*[^;]+;?/gi, '--wix-ads-height: 0;');
                     //body = body.replace(/--sticky-offset:\s*[^;]+;?/gi, '--sticky-offset: 0;');
                     //body = body.replace(/--wix-ads-top-height:\s*[^;]+;?/gi, '--wix-ads-top-height: 0;');
 
@@ -214,6 +214,16 @@ div[data-testid="bannerLogo"] {
     display: none !important; 
     visibility: hidden !important;
     overflow: hidden !important;
+}
+/* Force ALL Wix ad-related variables to 0 */
+:root, body, html {
+    --wix-ads-height: 0 !important;
+    --wix-ads-top-height: 0 !important;
+    --sticky-offset: 0 !important;
+}
+/* Fix the floating menu */
+#comp-lvi6te78, .xISX5a {
+    top: 0 !important;
 }
 </style>
 <script>
