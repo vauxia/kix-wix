@@ -68,15 +68,19 @@ export default {
 
         const targetUrl = `${targetURL.origin}${targetPath}${url.pathname}${url.search}`
 
-        const cacheKey = new Request(request.url, {
-            method: 'GET',
-        });
+        // Normalize cache key - always add trailing slash for root path
+        let normalizedUrl = request.url;
+        if (url.pathname === '' || (url.pathname === '/' && !request.url.endsWith('/'))) {
+            normalizedUrl = request.url.replace(/\/?$/, '/'); // Ensure trailing slash
+        }
 
-        // Check cache first for all content types
-        // const cachedResponse = await caches.default.match(cacheKey);
-        // if (cachedResponse) {
-          //  return cachedResponse;
-        //}
+        const cacheKey = new Request(normalizedUrl, { method: 'GET' });
+
+        // Check cache first and return if found
+        const cachedResponse = await caches.default.match(cacheKey);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
 
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
