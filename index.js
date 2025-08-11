@@ -73,10 +73,10 @@ export default {
         });
 
         // Check cache first for all content types
-        const cachedResponse = await caches.default.match(cacheKey);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
+        // const cachedResponse = await caches.default.match(cacheKey);
+        // if (cachedResponse) {
+          //  return cachedResponse;
+        //}
 
         // Only proxy requests to your domain
         if (url.hostname === YOUR_DOMAIN) {
