@@ -29,7 +29,9 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
 
         // Add back the fixed cookies
         allSetCookieHeaders.forEach(cookie => {
-            newHeaders.append('set-cookie', cookie)
+            // DO NOT set cookies. This may improve performance but impact functionality.
+            // Uncomment if things aren't working.
+            // newHeaders.append('set-cookie', cookie)
         })
     }
     newHeaders.set('Access-Control-Allow-Origin', '*')
