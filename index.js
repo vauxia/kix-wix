@@ -1,5 +1,6 @@
-function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
+function fixHeaders(headers, yourDomain, targetHost, targetUser, path) {
     const newHeaders = new Headers(headers)
+    console.log('requested path: ' + path);
 
     if (headers.has('set-cookie')) {
         const allSetCookieHeaders = []
@@ -30,8 +31,9 @@ function fixHeaders(headers, yourDomain, targetHost, targetUser, targetPath) {
         // Add back the fixed cookies
         allSetCookieHeaders.forEach(cookie => {
             // DO NOT set cookies. This may improve performance but impact functionality.
-            // Uncomment if things aren't working.
-            // newHeaders.append('set-cookie', cookie)
+            if ( path in ['search']) {
+                 newHeaders.append('set-cookie', cookie)
+            }
         })
     }
     newHeaders.set('Access-Control-Allow-Origin', '*')
@@ -147,7 +149,7 @@ export default {
 
                 try {
                     const response = await fetch(modifiedRequest)
-                    const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    const newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, url.pathname)
 
                     return new Response(response.body, {
                         status: response.status,
@@ -178,7 +180,7 @@ export default {
                 // Handle different content types appropriately
                 if (contentType.includes('application/json')) {
                     // JSON - pass through unchanged to avoid parse errors
-                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, url.pathname)
 
                     return new Response(response.body, {
                         status: response.status,
@@ -324,7 +326,7 @@ document.createElement = function(tagName) {
 </head>`
                     )
 
-                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, url.pathname)
                     newHeaders.set('Content-Type', contentType)
 
                     // Cache HTML for 5 minutes browser,  hour Cloudflare
@@ -350,7 +352,7 @@ document.createElement = function(tagName) {
                     body = body.replace(new RegExp(`src=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `src="https://${YOUR_DOMAIN}`)
                     body = body.replace(new RegExp(`href=['"]https://${targetUser}.wixsite.com${targetPath}`, 'g'), `href="https://${YOUR_DOMAIN}`)
 
-                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, url.pathname)
                     newHeaders.set('Content-Type', contentType) // Preserve exact MIME type
 
                     // Cache CSS/JS assets for 24 hours browser, 7 days Cloudflare
@@ -367,7 +369,7 @@ document.createElement = function(tagName) {
 
                 } else {
                     // Everything else (images, fonts, etc.) - pass through unchanged
-                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, targetPath)
+                    newHeaders = fixHeaders(response.headers, YOUR_DOMAIN, targetHost, targetUser, url.pathname)
 
                     // Cache static assets aggressively - 24 hours browser, 30 days Cloudflare
                     if (contentType.includes('image/') ||
